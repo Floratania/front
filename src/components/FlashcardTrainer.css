@@ -1,0 +1,63 @@
+.trainer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.trainer-card {
+  width: 300px;
+  height: 200px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.trainer-card .front,
+.trainer-card .back {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  transition: transform 0.8s;
+}
+
+.trainer-card .front {
+  background-color: #fdfdfd;
+}
+
+.trainer-card .back {
+  background-color: #d3f8d3;
+  transform: rotateY(180deg);
+}
+
+.trainer-card.flipped .front {
+  transform: rotateY(180deg);
+}
+
+.trainer-card.flipped .back {
+  transform: rotateY(0deg);
+}
+
+.trainer-controls button {
+  margin: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  background-color: #ececec;
+  /* transition: background 0.3s; */
+}
+
+.trainer-controls button:hover {
+  background-color: #d0f0ff;
+}
+

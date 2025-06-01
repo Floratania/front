@@ -1,0 +1,33 @@
+.drag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .drag-item {
+    padding: 0.5rem 1rem;
+    background: #f0f0f0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+  }
+  
+  .animate-in {
+    animation: fadeInScale 0.4s ease-in;
+  }
+  
+  @keyframes fadeInScale {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
