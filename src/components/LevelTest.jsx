@@ -1,460 +1,298 @@
-// import React, { useEffect, useState } from 'react';
-// import API from '../services/api'; // переконайся, що токен там в headers
-
-// const LevelTest = () => {
-//   const [questions, setQuestions] = useState([]);
-//   const [answers, setAnswers] = useState({});
-//   const [submitted, setSubmitted] = useState(false);
-//   const [result, setResult] = useState(null);
-
-//   useEffect(() => {
-//     API.get('leveltest/leveltest/')
-//       .then(res => setQuestions(res.data))
-//       .catch(err => alert('❌ Не вдалося завантажити тест'));
-//   }, []);
-
-//   const handleSelect = (qid, answer) => {
-//     setAnswers({ ...answers, [qid]: answer });
-//   };
-
-//   const handleSubmit = async () => {
-//     const payload = Object.entries(answers).map(([qid, selected]) => ({
-//       question_id: qid,
-//       selected,
-//     }));
-
-//     try {
-//       const res = await API.post('leveltest/leveltest/', payload);
-//       setResult(res.data);
-//       setSubmitted(true);
-//     } catch {
-//       alert('❌ Помилка при надсиланні результатів');
-//     }
-//   };
-
-//   if (submitted && result) {
-//     return (
-//       <div>
-//         <h2>✅ Результат тесту</h2>
-//         <p><strong>Рівень:</strong> {result.level}</p>
-//         <p><strong>Загальний бал:</strong> {result.score}%</p>
-//         <h3>📊 Рівні:</h3>
-//         <ul>
-//           {Object.entries(result.details).map(([level, score]) => (
-//             <li key={level}>{level}: {score}%</li>
-//           ))}
-//         </ul>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div>
-//       <h2>🧠 Тест на визначення рівня</h2>
-//       {questions.map((q) => (
-//         <div key={q.id}>
-//           <p><strong>{q.question}</strong></p>
-//           {['a', 'b', 'c', 'd'].map((opt) => (
-//             <label key={opt}>
-//               <input
-//                 type="radio"
-//                 name={q.id}
-//                 value={opt}
-//                 checked={answers[q.id] === opt}
-//                 onChange={() => handleSelect(q.id, opt)}
-//               />
-//               {q[`option_${opt}`]}
-//             </label>
-//           ))}
-//         </div>
-//       ))}
-//       <br />
-//       <button onClick={handleSubmit} disabled={Object.keys(answers).length !== questions.length}>
-//         Завершити тест
-//       </button>
-//     </div>
-//   );
-// };
-
-// export default LevelTest;
-// import React, { useEffect, useState } from 'react';
-// import API from '../services/api';
-
-// const LevelTest = () => {
-//   const [questions, setQuestions] = useState([]);
-//   const [currentIdx, setCurrentIdx] = useState(0);
-//   const [answers, setAnswers] = useState({});
-//   const [submitted, setSubmitted] = useState(false);
-//   const [result, setResult] = useState(null);
-//   const [aiQuestions, setAiQuestions] = useState([]);
-//   const [aiAnswers, setAiAnswers] = useState({});
-//   const [aiIdx, setAiIdx] = useState(0);
-//   const [finalScore, setFinalScore] = useState(null);
-
-//   useEffect(() => {
-//     API.get('leveltest/leveltest/')
-//       .then(res => setQuestions(res.data))
-//       .catch(() => alert('❌ Не вдалося завантажити тест'));
-//   }, []);
-
-//   const handleSelect = (qid, selected, fromAi = false) => {
-//     if (fromAi) {
-//       setAiAnswers({ ...aiAnswers, [qid]: selected });
-//     } else {
-//       setAnswers({ ...answers, [qid]: selected });
-//     }
-//   };
-
-//   const next = () => {
-//     if (currentIdx + 1 < questions.length) {
-//       setCurrentIdx(currentIdx + 1);
-//     } else {
-//       handleSubmit();
-//     }
-//   };
-
-//   const nextAi = () => {
-//     if (aiIdx + 1 < aiQuestions.length) {
-//       setAiIdx(aiIdx + 1);
-//     } else {
-//       handleAiSubmit();
-//     }
-//   };
-
-//   const handleSubmit = async () => {
-//     const payload = Object.entries(answers).map(([qid, selected]) => ({
-//       question_id: qid,
-//       selected
-//     }));
-
-//     try {
-//       const res = await API.post('leveltest/leveltest/', payload);
-//       setResult(res.data);
-//       setSubmitted(true);
-
-//       if (res.data.score >= 70) {
-//         const nextLevel = getNextLevel(res.data.level);
-//         const aiRes = await API.get('leveltest/ai_generate/?level=' + nextLevel);
-
-//         let parsed = [];
-//         try {
-//           parsed = typeof aiRes.data.questions === 'string'
-//             ? JSON.parse(aiRes.data.questions)
-//             : aiRes.data.questions;
-//         } catch {
-//           parsed = [];
-//         }
-
-//         setAiQuestions(parsed);
-//       }
-//     } catch {
-//       alert('❌ Помилка при надсиланні результатів');
-//     }
-//   };
-
-//   const handleAiSubmit = () => {
-//     // Проста оцінка правильності для AI-блоку
-//     let correct = 0;
-//     aiQuestions.forEach(q => {
-//       if (aiAnswers[q.question] === q.correct) correct++;
-//     });
-//     const score = Math.round((correct / aiQuestions.length) * 100);
-//     setFinalScore(score);
-//   };
-
-//   const getNextLevel = (level) => {
-//     const order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-//     const idx = order.indexOf(level);
-//     return idx !== -1 && idx + 1 < order.length ? order[idx + 1] : level;
-//   };
-
-//   if (finalScore !== null) {
-//     return (
-//       <div>
-//         <h2>🏁 Завершено!</h2>
-//         <p><strong>Результат AI-рівня:</strong> {finalScore}%</p>
-//       </div>
-//     );
-//   }
-
-//   if (aiQuestions.length > 0 && submitted) {
-//     const q = aiQuestions[aiIdx];
-//     if (!q) return <p>⏳ Завантаження AI-питань...</p>;
-
-//     return (
-//       <div>
-//         <h3>AI-рівень: Питання {aiIdx + 1} / {aiQuestions.length}</h3>
-//         <p><strong>{q.question}</strong></p>
-//         {Object.entries(q.options).map(([key, text]) => (
-//           <label key={key} style={{ display: 'block', marginBottom: '0.5rem' }}>
-//             <input
-//               type="radio"
-//               name="ai_option"
-//               checked={aiAnswers[q.question] === key}
-//               onChange={() => handleSelect(q.question, key, true)}
-//             />
-//             {key}: {text}
-//           </label>
-//         ))}
-//         <br />
-//         <button onClick={nextAi} disabled={!aiAnswers[q.question]}>Далі</button>
-//       </div>
-//     );
-//   }
-
-//   if (submitted && result) {
-//     return (
-//       <div>
-//         <h2>✅ Результат тесту</h2>
-//         <p><strong>Рівень:</strong> {result.level}</p>
-//         <p><strong>Загальний бал:</strong> {result.score}%</p>
-
-//         <h3>📊 Рівні:</h3>
-//         <ul>
-//           {Object.entries(result.details).map(([level, score]) => (
-//             <li key={level}>{level}: {score}%</li>
-//           ))}
-//         </ul>
-
-//         {result.score < 70 && <p>❗ Щоб перейти на наступний рівень, потрібно не менше 70%.</p>}
-//       </div>
-//     );
-//   }
-
-//   const q = questions[currentIdx];
-//   if (!q) return <p>⏳ Завантаження...</p>;
-
-//   return (
-//     <div>
-//       <h3>Питання {currentIdx + 1} / {questions.length}</h3>
-//       <p><strong>{q.question}</strong></p>
-//       {['a', 'b', 'c', 'd'].map(opt => (
-//         <label key={opt} style={{ display: 'block', marginBottom: '0.5rem' }}>
-//           <input
-//             type="radio"
-//             name="option"
-//             checked={answers[q.id] === opt}
-//             onChange={() => handleSelect(q.id, opt)}
-//           />
-//           {q[`option_${opt}`]}
-//         </label>
-//       ))}
-//       <br />
-//       <button onClick={next} disabled={!answers[q.id]}>Далі</button>
-//     </div>
-//   );
-// };
-
-// export default LevelTest;
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import API from '../services/api';
+import { ThemeContext } from '../context/ThemeContext';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 const LevelTest = () => {
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-  const [result, setResult] = useState(null);
-  const [aiQuestions, setAiQuestions] = useState([]);
+  const [aiBlocks, setAiBlocks] = useState([]);
   const [aiAnswers, setAiAnswers] = useState({});
   const [aiIdx, setAiIdx] = useState(0);
-  const [finalScore, setFinalScore] = useState(null);
+  const [currentLevel, setCurrentLevel] = useState('B1');
+  const [blockStep, setBlockStep] = useState(0);
+  const [finalResult, setFinalResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
 
-  const getNextLevel = (level) => {
-    const order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const idx = order.indexOf(level);
-    return idx !== -1 && idx + 1 < order.length ? order[idx + 1] : level;
-  };
+  const { theme } = useContext(ThemeContext);
 
-  const getCombinedLevels = (level) => {
-    const order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const idx = order.indexOf(level);
-    const prev = idx > 0 ? order[idx - 1] : level;
-    const next = idx < order.length - 1 ? order[idx + 1] : level;
-    return [prev, level, next];
-  };
+  const order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  const getNextLevel = (level) => order[Math.min(order.indexOf(level) + 1, order.length - 1)];
+  const getPrevLevel = (level) => order[Math.max(order.indexOf(level) - 1, 0)];
+
+  const themeClasses = theme === 'dark'
+    ? {
+        page: 'bg-gradient-to-br from-[#11123D] via-[#3D102F] to-[#461D11] text-white',
+        card: 'bg-[#1c1c2b]',
+        input: 'bg-[#2b2b3c] text-white border-[#444]',
+        text: 'text-white',
+        button: 'bg-purple-700 text-white',
+      }
+    : {
+        page: 'bg-gradient-to-br from-white via-purple-100 to-blue-100 text-gray-900',
+        card: 'bg-white',
+        input: 'bg-gray-100 text-gray-800 border-gray-300',
+        text: 'text-gray-900',
+        button: 'bg-blue-500 text-white',
+      };
 
   useEffect(() => {
     API.get('leveltest/leveltest/')
-      .then(res => setQuestions(res.data))
-      .catch(() => alert('❌ Не вдалося завантажити тест'));
+      .then(res => {
+        setQuestions(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        alert('❌ Не вдалося завантажити тест');
+        setLoading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    if (currentIdx >= questions.length && aiBlocks.length === 0) {
+      fetchAiBlock(currentLevel);
+    }
+  }, [currentIdx]);
+
+  const fetchAiBlock = async (level) => {
+    try {
+      setAiLoading(true);
+      const res = await API.get(`leveltest/ai_generate/?level=${level}`);
+      const block = res.data.questions.slice(0, 7).map(q => ({
+        ...q,
+        question_id: q.question,
+        level,
+      }));
+
+      setAiBlocks(prev => [...prev, block]);
+      setBlockStep(prev => prev + 1);
+      setCurrentLevel(level);
+    } catch {
+      alert('❌ Не вдалося завантажити AI-питання');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSelect = (qid, selected, fromAi = false) => {
     if (fromAi) {
-      setAiAnswers({ ...aiAnswers, [qid]: selected });
+      setAiAnswers(prev => ({ ...prev, [qid]: selected }));
     } else {
-      setAnswers({ ...answers, [qid]: selected });
+      setAnswers(prev => ({ ...prev, [qid]: selected }));
     }
   };
 
   const next = () => {
-    if (currentIdx + 1 < questions.length) {
-      setCurrentIdx(currentIdx + 1);
-    } else {
-      handleSubmit();
-    }
+    setCurrentIdx(prev => prev + 1);
   };
 
   const nextAi = () => {
-    if (aiIdx + 1 < aiQuestions.length) {
+    const currentBlock = aiBlocks[aiBlocks.length - 1];
+    const currentQuestion = currentBlock[aiIdx];
+    if (!currentQuestion) return;
+
+    const answeredCount = currentBlock.filter(q => aiAnswers[q.question_id]).length;
+
+    if (
+      answeredCount === 4 &&
+      blockStep < 5 &&
+      aiIdx === 3
+    ) {
+      const score = evaluateAiBlock(currentBlock);
+      let nextLevel = currentLevel;
+      if (score >= 70) {
+        nextLevel = getNextLevel(currentLevel);
+      } else if (score < 40) {
+        nextLevel = getPrevLevel(currentLevel);
+      }
+
+      if (blockStep < 5 && (!aiBlocks[blockStep])) {
+        fetchAiBlock(nextLevel);
+      }
+    }
+
+    if (aiIdx + 1 < currentBlock.length) {
       setAiIdx(aiIdx + 1);
     } else {
-      handleAiSubmit();
+      handleAiSubmit(currentBlock);
     }
   };
 
-  const handleSubmit = async () => {
-    const payload = Object.entries(answers).map(([qid, selected]) => ({
+  const evaluateAiBlock = (block) => {
+    let correct = 0;
+    block.forEach(q => {
+      if (aiAnswers[q.question_id] === q.correct) correct++;
+    });
+    return Math.round((correct / block.length) * 100);
+  };
+
+  const handleAiSubmit = (block) => {
+    const score = evaluateAiBlock(block);
+    let nextLevel = currentLevel;
+
+    if (score >= 70) {
+      nextLevel = getNextLevel(currentLevel);
+    } else if (score < 40) {
+      nextLevel = getPrevLevel(currentLevel);
+    }
+
+    if (blockStep >= 5 || nextLevel === currentLevel) {
+      const flatAiSet = aiBlocks.flat();
+      handleFinalSubmit(flatAiSet);
+    } else {
+      if (aiBlocks[blockStep]) {
+        setAiIdx(0);
+        setCurrentLevel(nextLevel);
+      } else {
+        fetchAiBlock(nextLevel);
+        setAiIdx(0);
+      }
+    }
+  };
+
+  const handleFinalSubmit = async (aiQset) => {
+    const regularAnswers = Object.entries(answers).map(([qid, selected]) => ({
       question_id: qid,
-      selected
+      selected,
     }));
 
+    const aiAnswersFormatted = aiQset.map(q => ({
+      question_id: q.question_id,
+      selected: aiAnswers[q.question_id],
+      correct: q.correct,
+      level: q.level,
+    }));
+
+    const allAnswers = [...regularAnswers, ...aiAnswersFormatted];
+
     try {
-      const res = await API.post('leveltest/leveltest/', payload);
-      setResult(res.data);
-      setSubmitted(true);
-
-      // Генерація AI-питань, якщо ≥ 70% на своєму рівні
-      if (res.data.details[res.data.level] >= 70) {
-        const combined = getCombinedLevels(res.data.level);
-        const responses = await Promise.all(
-          combined.map(lvl => API.get('leveltest/ai_generate/?level=' + lvl))
-        );
-
-        let allQs = [];
-        for (const res of responses) {
-          let q = [];
-          try {
-            q = typeof res.data.questions === 'string'
-              ? JSON.parse(res.data.questions)
-              : res.data.questions;
-          } catch { q = []; }
-          allQs = [...allQs, ...q];
-        }
-
-        setAiQuestions(allQs);
-      }
+      const res = await API.post('leveltest/final/', allAnswers);
+      setFinalResult(res.data);
     } catch {
-      alert('❌ Помилка при надсиланні результатів');
+      alert('❌ Помилка при надсиланні фінального результату');
     }
   };
 
-  const handleAiSubmit = () => {
-    const levelStats = {}; // { B1: { correct: 0, total: 0 }, ... }
-  
-    aiQuestions.forEach(q => {
-      const lvl = q.source_level || 'B1'; // fallback
-  
-      if (!levelStats[lvl]) levelStats[lvl] = { correct: 0, total: 0 };
-      levelStats[lvl].total += 1;
-  
-      if (aiAnswers[q.question] === q.correct) {
-        levelStats[lvl].correct += 1;
-      }
-    });
-  
-    const levelPercentages = {};
-    Object.entries(levelStats).forEach(([level, stats]) => {
-      levelPercentages[level] = Math.round((stats.correct / stats.total) * 100);
-    });
-  
-    // Визначення найвищого рівня з ≥ 60% і всі попередні також ≥ 60%
-    const order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    let finalLevel = 'A1';
-  
-    for (let i = 0; i < order.length; i++) {
-      const lvl = order[i];
-      if (levelPercentages[lvl] >= 60) {
-        const allPrevOk = order.slice(0, i).every(prev => levelPercentages[prev] >= 60);
-        if (allPrevOk) finalLevel = lvl;
-      }
-    }
-  
-    setFinalScore({ score: levelPercentages, level: finalLevel });
-  };
-  
-
-  if (finalScore !== null) {
+  if (loading) {
     return (
-      <div>
-        <h2>🏁 AI-тест завершено</h2>
-        <p><strong>Рівень за AI:</strong> {finalScore.level}</p>
-        <h3>📊 Деталі по рівнях:</h3>
-        <ul>
-          {Object.entries(finalScore.score).map(([lvl, val]) => (
-            <li key={lvl}>{lvl}: {val}%</li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-  
-
-  if (aiQuestions.length > 0 && submitted) {
-    const q = aiQuestions[aiIdx];
-    if (!q) return <p>⏳ Завантаження AI-питань...</p>;
-
-    return (
-      <div>
-        <h3>AI-рівень: Питання {aiIdx + 1} / {aiQuestions.length}</h3>
-        <p><strong>{q.question}</strong></p>
-        {Object.entries(q.options).map(([key, text]) => (
-          <label key={key} style={{ display: 'block', marginBottom: '0.5rem' }}>
-            <input
-              type="radio"
-              name={`ai_${aiIdx}`}
-              checked={aiAnswers[q.question] === key}
-              onChange={() => handleSelect(q.question, key, true)}
-            />
-            {key}: {text}
-          </label>
-        ))}
-        <br />
-        <button onClick={nextAi} disabled={!aiAnswers[q.question]}>Далі</button>
+      <div className={`min-h-screen flex flex-col items-center justify-center px-4 ${themeClasses.page}`}>
+        <div className="w-16 h-16 border-4 border-blue-400 border-dashed rounded-full animate-spin mb-6"></div>
+        <p className="text-lg font-medium">⏳ Зачекайте, будь ласка. Йде генерація питань...</p>
       </div>
     );
   }
 
-  if (submitted && result) {
+  if (finalResult) {
+    const chartData = Object.entries(finalResult.details).map(([level, score]) => ({ level, score }));
+
     return (
-      <div>
-        <h2>✅ Результат тесту</h2>
-        <p><strong>Рівень:</strong> {result.level}</p>
-        <p><strong>Загальний бал:</strong> {result.score}%</p>
+      <div className={`min-h-screen flex items-center justify-center px-4 ${themeClasses.page}`}>
+        <div className={`p-8 rounded-2xl shadow-xl w-full max-w-2xl ${themeClasses.card}`}>
+          <h2 className="text-2xl font-bold mb-4 text-center">🏁 Завершено!</h2>
+          <p className="text-center"><strong>Ваш рівень:</strong> {finalResult.level}</p>
+          <p className="text-center"><strong>Загальний бал:</strong> {finalResult.score}%</p>
 
-        <h3>📊 Рівні:</h3>
-        <ul>
-          {Object.entries(result.details).map(([level, score]) => (
-            <li key={level}>{level}: {score}%</li>
-          ))}
-        </ul>
+          <h3 className="mt-6 text-lg font-semibold text-center">📊 Результати за рівнями:</h3>
 
-        {result.score < 70 && <p>❗ Щоб перейти на наступний рівень, потрібно не менше 70%.</p>}
+          <div className="mt-4 h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="level" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Bar dataKey="score" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const q = questions[currentIdx];
-  if (!q) return <p>⏳ Завантаження...</p>;
+  if (currentIdx < questions.length) {
+    const q = questions[currentIdx];
 
+    return (
+      <div className={`min-h-screen flex items-center justify-center px-4 ${themeClasses.page}`}>
+        <div className={`p-8 rounded-2xl shadow-xl w-full max-w-md ${themeClasses.card}`}>
+          <h3 className="text-xl font-semibold mb-2">Питання {currentIdx + 1} / {questions.length}</h3>
+          <p className="mb-4">{q.question}</p>
+          <div className="space-y-2">
+            {['a', 'b', 'c', 'd'].map(opt => (
+              <label key={opt} className="block">
+                <input
+                  type="radio"
+                  name={`q_${q.id}`}
+                  checked={answers[q.id] === opt}
+                  onChange={() => handleSelect(q.id, opt)}
+                  className="mr-2"
+                />
+                {q[`option_${opt}`]}
+              </label>
+            ))}
+          </div>
+          <button
+            onClick={next}
+            disabled={!answers[q.id]}
+            className={`mt-6 w-full py-2 rounded-xl font-semibold ${themeClasses.button}`}
+          >
+            Далі
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentBlock = aiBlocks[aiBlocks.length - 1] || [];
+  const aiQ = currentBlock[aiIdx];
+
+  if (!aiQ) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center px-4 ${themeClasses.page}`}>
+        <div className="w-16 h-16 border-4 border-blue-400 border-dashed rounded-full animate-spin mb-6"></div>
+        <p className="text-lg font-medium">⏳ Зачекайте, будь ласка. Завантажуються AI-питання...</p>
+      </div>
+    );
+  }
+  
   return (
-    <div>
-      <h3>Питання {currentIdx + 1} / {questions.length}</h3>
-      <p><strong>{q.question}</strong></p>
-      {['a', 'b', 'c', 'd'].map(opt => (
-        <label key={opt} style={{ display: 'block', marginBottom: '0.5rem' }}>
-          <input
-            type="radio"
-            name="option"
-            checked={answers[q.id] === opt}
-            onChange={() => handleSelect(q.id, opt)}
-          />
-          {q[`option_${opt}`]}
-        </label>
-      ))}
-      <br />
-      <button onClick={next} disabled={!answers[q.id]}>Далі</button>
+    <div className={`min-h-screen flex items-center justify-center px-4 ${themeClasses.page}`}>
+      <div className={`p-8 rounded-2xl shadow-xl w-full max-w-md ${themeClasses.card}`}>
+        <h3 className="text-xl font-semibold mb-2">AI-питання {aiIdx + 1} / {currentBlock.length} (Рівень: {currentLevel})</h3>
+        <p className="mb-4">{aiQ.question}</p>
+        <div className="space-y-2">
+          {Object.entries(aiQ.options).map(([key, text]) => (
+            <label key={key} className="block">
+              <input
+                type="radio"
+                name={`ai_${aiIdx}`}
+                checked={aiAnswers[aiQ.question_id] === key}
+                onChange={() => handleSelect(aiQ.question_id, key, true)}
+                className="mr-2"
+              />
+              {key}: {text}
+            </label>
+          ))}
+        </div>
+        <button
+          onClick={nextAi}
+          disabled={!aiAnswers[aiQ.question_id]}
+          className={`mt-6 w-full py-2 rounded-xl font-semibold ${themeClasses.button}`}
+        >
+          Далі
+        </button>
+      </div>
     </div>
   );
 };

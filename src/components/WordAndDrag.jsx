@@ -6,13 +6,15 @@ import { ThemeContext } from '../context/ThemeContext';
 import './WordAndDrag.css';
 
 const WordDragAndDrop = () => {
-  const { theme, toggleTheme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const [words, setWords] = useState([]);
   const [originalSentence, setOriginalSentence] = useState('');
   const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
   const [animateKey, setAnimateKey] = useState(0);
 
   const loadSentence = () => {
+    setLoading(true);
     API.get('drag-sentence/wd/')
       .then(res => {
         const { shuffled, original } = res.data;
@@ -24,7 +26,8 @@ const WordDragAndDrop = () => {
       .catch(err => {
         console.error('❌ Error loading sentence:', err);
         setStatus('❌ Не вдалося завантажити речення.');
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -76,19 +79,21 @@ const WordDragAndDrop = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={`min-h-screen ${themeClasses.page} px-6 py-10`}>
-        {/* Button to toggle themes */}
-        {/* <button
-          onClick={toggleTheme}
-          className="absolute top-4 right-4 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-full shadow hover:shadow-md transition z-10"
-        >
-          {theme === 'dark' ? '☀️ Світла тема' : '🌙 Темна тема'}
-        </button> */}
-
         <div className={themeClasses.card}>
           <h2 className={`text-2xl font-bold mb-4 ${themeClasses.text}`}>🧩 Складіть речення</h2>
 
+          {/* Loader */}
+          {loading && (
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-5 h-5 border-4 border-dashed rounded-full animate-spin border-blue-500"></div>
+              <span className={themeClasses.subtext}>Зачекайте, йде завантаження...</span>
+            </div>
+          )}
+
+          {/* Feedback */}
           {status && <p className={`font-medium mb-4 ${themeClasses.text}`}>{status}</p>}
 
+          {/* Draggable Words */}
           <ul className="drag-container space-y-4">
             {words.map((word, idx) => (
               <WordItem key={idx} word={word} index={idx} moveWord={moveWord} theme={theme} />
@@ -96,8 +101,12 @@ const WordDragAndDrop = () => {
           </ul>
 
           <div className="flex justify-between mt-4">
-            <button onClick={handleSubmit} className={themeClasses.button}>✅ Перевірити</button>
-            <button onClick={loadSentence} className={`${themeClasses.button} ml-4`}>🔄 Нове речення</button>
+            <button onClick={handleSubmit} className={themeClasses.button} disabled={loading}>
+              ✅ Перевірити
+            </button>
+            <button onClick={loadSentence} className={`${themeClasses.button} ml-4`} disabled={loading}>
+              🔄 Нове речення
+            </button>
           </div>
         </div>
       </div>

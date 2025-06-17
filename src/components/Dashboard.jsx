@@ -37,12 +37,6 @@ export default function Dashboard() {
 
   return (
     <div className={`min-h-screen ${themeClasses.page} px-6 py-10 transition-all duration-500`}>
-      {/* <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-full shadow hover:shadow-md transition z-10"
-      >
-        {theme === 'dark' ? '☀️ Світла тема' : '🌙 Темна тема'}
-      </button> */}
 
       <div className={`max-w-5xl mx-auto rounded-3xl shadow-xl ${themeClasses.card} p-10`}>
         <h1 className={`text-3xl font-bold mb-2 ${themeClasses.text}`}>
@@ -68,6 +62,12 @@ export default function Dashboard() {
           </Link>
           <Link to="/wordsets" className={`rounded-xl p-5 text-center font-semibold shadow hover:scale-[1.02] transition ${themeClasses.link}`}>
             📖 Обрати словник
+          </Link>
+          <Link to="/partofspeech" className={`rounded-xl p-5 text-center font-semibold shadow hover:scale-[1.02] transition ${themeClasses.link}`}>
+            📖 Частина мови
+          </Link>
+          <Link to="/pronunciation" className={`rounded-xl p-5 text-center font-semibold shadow hover:scale-[1.02] transition ${themeClasses.link}`}>
+          🗣  Вимова 
           </Link>
         </div>
       </div>

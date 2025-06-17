@@ -17,6 +17,10 @@ import TensePage from './components/TensePage';
 import PrivateRoute from './utils/PrivateRoute';
 import ProfilePage from './components/ProfilePage';
 import PartOfSpeech from './components/PartOfSpeech';
+import PronunciationTrainer from './components/PronunciationTrainer';
+import ChangePassword from './components/ChangePassword';
+import DeleteAccount from './components/DeleteAccount';
+
 
 function AppWrapper() {
   return (
@@ -69,6 +73,7 @@ function App() {
                 >
                   ✖
                 </button>
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className={themeClasses.link}>📌 Головна</Link>
                 <Link to="/flashcards" onClick={() => setMenuOpen(false)} className={themeClasses.link}>📇 Флеш-картки</Link>
                 <Link to="/wordsets" onClick={() => setMenuOpen(false)} className={themeClasses.link}>📚 Обрати набір</Link>
                 <Link to="/import" onClick={() => setMenuOpen(false)} className={themeClasses.link}>⬆️ Імпорт</Link>
@@ -76,7 +81,8 @@ function App() {
                 <Link to="/wd" onClick={() => setMenuOpen(false)} className={themeClasses.link}>🧩 Речення</Link>
                 <Link to="/translate" onClick={() => setMenuOpen(false)} className={themeClasses.link}>🌐 Перекладач</Link>
                 <Link to="/tenses" onClick={() => setMenuOpen(false)} className={themeClasses.link}>⏱️ Часи</Link>
-                <Link to="/partofspeech" onClick={() => setMenuOpen(false)} className={themeClasses.link}>⏱ Частина мови</Link>
+                <Link to="/partofspeech" onClick={() => setMenuOpen(false)} className={themeClasses.link}>🔤 Частина мови</Link>
+                <Link to="/pronunciation" onClick={() => setMenuOpen(false)} className={themeClasses.link}> 🗣️ Вимова</Link>
               </div>
             </div>
           )}
@@ -89,6 +95,8 @@ function App() {
                 <button onClick={() => setMenuOpen(!menuOpen)} className="text-2xl focus:outline-none">
                   ☰
                 </button>
+                
+                <Link to="/dashboard" className="font-bold text-lg">📌 Головна</Link>
                 <Link to="/profile" className="font-bold text-lg">👤 Профіль</Link>
               </div>
               <div className="flex items-center gap-2">
@@ -122,6 +130,9 @@ function App() {
                 <Route path="/tense/:tenseName" element={<PrivateRoute><TensePage /></PrivateRoute>} />
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/partofspeech" element={<PrivateRoute><PartOfSpeech /></PrivateRoute>} />
+                <Route path="/pronunciation" element={<PronunciationTrainer />} />
+                <Route path="/change-password" element={<ChangePassword />} />
+                <Route path="/delete-account" element={<DeleteAccount />} />
               </Routes>
             </main>
           </div>

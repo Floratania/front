@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
+import { Link } from 'react-router-dom';
+
 
 const ProfilePage = () => {
   const { token } = useContext(AuthContext);
@@ -121,6 +123,15 @@ const ProfilePage = () => {
             <button type="submit" className={`w-full py-3 font-semibold rounded-xl hover:shadow-xl transition duration-300 ${themeClasses.button}`}>
               💾 Зберегти зміни
             </button>
+            <div className="flex flex-col space-y-2 mt-4">
+              <Link to="/change-password" className="text-sm text-center text-blue-500 hover:underline">
+                🔒 Змінити пароль
+              </Link>
+              <Link to="/delete-account" className="text-sm text-center text-red-500 hover:underline">
+                🗑️ Видалити акаунт
+              </Link>
+            </div>
+
           </form>
         </div>
       </div>

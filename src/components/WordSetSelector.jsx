@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { getWordSets, subscribeToSet } from '../services/wordsets';
+import { getWordSets, subscribeToSet, unsubscribeFromSet } from '../services/wordsets';
 import { ThemeContext } from '../context/ThemeContext';
 
-const WordSetSelector = ({ onSubscribed, currentUserId }) => {
-  const { theme, toggleTheme } = useContext(ThemeContext);
+const WordSetSelector = ({ currentUserId }) => {
+  const { theme } = useContext(ThemeContext);
   const [sets, setSets] = useState([]);
   const [error, setError] = useState('');
 
-  // Темні та світлі теми для фону, карток, кнопок та тексту
   const themeClasses = theme === 'dark'
     ? {
         page: 'bg-gradient-to-br from-[#11123D] via-[#3D102F] to-[#461D11] text-white',
@@ -31,9 +30,12 @@ const WordSetSelector = ({ onSubscribed, currentUserId }) => {
     getWordSets()
       .then((res) => {
         const allSets = Array.isArray(res) ? res : res?.data || [];
-        const publicNotMine = allSets.filter(
-          (set) => set.is_public && set.owner !== currentUserId
-        );
+        const publicNotMine = allSets
+          .filter((set) => set.is_public && set.owner !== currentUserId)
+          .map((set) => ({
+            ...set,
+            is_subscribed: set.user_has_subscribed || false
+          }));
         setSets(publicNotMine);
       })
       .catch(() => {
@@ -41,38 +43,34 @@ const WordSetSelector = ({ onSubscribed, currentUserId }) => {
       });
   }, [currentUserId]);
 
-  const handleSubscribe = async (id) => {
-    await subscribeToSet(id);
-    onSubscribed();
+  const handleToggleSubscribe = async (id, isSubscribed) => {
+    try {
+      if (isSubscribed) {
+        await unsubscribeFromSet(id);
+      } else {
+        await subscribeToSet(id);
+      }
+
+      // 🔁 Локально оновити статус
+      setSets((prevSets) =>
+        prevSets.map((set) =>
+          set.id === id ? { ...set, is_subscribed: !isSubscribed } : set
+        )
+      );
+    } catch {
+      setError('⚠️ Помилка підписки/відписки');
+    }
   };
+
+  const subscribedSets = sets.filter((set) => set.is_subscribed);
+  const unsubscribedSets = sets.filter((set) => !set.is_subscribed);
 
   return (
     <div className={`min-h-screen ${themeClasses.page} px-6 py-10 transition-all duration-500`}>
-    {/* Theme Toggle Button */}
-    {/* <button
-      onClick={toggleTheme}
-      className="absolute top-4 right-4 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-full shadow hover:shadow-md transition z-10"
-    >
-      {theme === 'dark' ? '☀️ Світла тема' : '🌙 Темна тема'}
-    </button> */}
-    
-    <div className={`min-h-screen ${themeClasses.page} p-6 flex flex-col items-center relative`}>
-    {/* Theme Toggle (always at top) */}
-
-
-    {/* <div className={`min-h-screen ${themeClasses.page} px-6 py-10 relative`}> */}
-      {/* Toggle Theme Button */}
-      {/* <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-full shadow hover:shadow-md transition z-10"
-      >
-        {theme === 'dark' ? '☀️ Світла тема' : '🌙 Темна тема'}
-      </button> */}
-
       <div className={`max-w-3xl mx-auto p-6 rounded-2xl shadow-lg ${themeClasses.card}`}>
         <h2 className={`text-2xl font-bold mb-4 ${themeClasses.text}`}>📚 Доступні набори слів</h2>
 
-        {error && <p className="text-red-500 font-medium mb-8">{error}</p>}
+        {error && <p className="text-red-500 font-medium mb-6">{error}</p>}
 
         {!sets.length && !error ? (
           <div className={`text-md ${themeClasses.subtext}`}>
@@ -82,29 +80,55 @@ const WordSetSelector = ({ onSubscribed, currentUserId }) => {
             </p>
           </div>
         ) : (
-          <ul className="space-y-4">
-            {sets.map((set) => (
-              <li
-                key={set.id}
-                className={`flex justify-between items-center p-4 rounded-xl border  ${themeClasses.border} ${themeClasses.card}`}
-              >
-                <span className={`font-medium ${themeClasses.text}`}>{set.name}</span>
-                {'\u00A0'} {/* Non-breaking space for better alignment */}
-                {'\u00A0'} {/* Non-breaking space for better alignment */}
-                {'\u00A0'} {/* Non-breaking space for better alignment */}
-                
-                <button
-                  onClick={() => handleSubscribe(set.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition duration-300 ${themeClasses.button}`}
-                >
-                  ➕ Додати
-                </button>
-              </li>
-            ))}
-          </ul>
+          <>
+            {/* 🔴 Підписані */}
+            {subscribedSets.length > 0 && (
+              <div className={`mb-8 p-4 rounded-xl shadow-inner ${theme === 'dark' ? 'bg-[#2c2c40]' : 'bg-purple-100'}`}>
+                <h3 className={`text-lg font-semibold mb-2 ${themeClasses.text}`}>✅ Ви вже підписані:</h3>
+                <ul className="space-y-3">
+                  {subscribedSets.map((set) => (
+                    <li
+                      key={set.id}
+                      className={`flex justify-between items-center p-4 rounded-xl border ${themeClasses.border} ${themeClasses.card}`}
+                    >
+                      <span className={`font-medium ${themeClasses.text}`}>{set.name}</span>
+                      <button
+                        onClick={() => handleToggleSubscribe(set.id, true)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition duration-300 ${themeClasses.button}`}
+                      >
+                        ❌ Видалити
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 🟢 Доступні до додавання */}
+            {unsubscribedSets.length > 0 && (
+              <div className={`p-4 rounded-xl shadow-inner ${theme === 'dark' ? 'bg-[#e5623055]' : 'bg-blue-100'}`}>
+                <h3 className={`text-lg font-semibold mb-2 ${themeClasses.text}`}>🆕 Доступні для додавання:</h3>
+                <ul className="space-y-3">
+                  {unsubscribedSets.map((set) => (
+                    <li
+                      key={set.id}
+                      className={`flex justify-between items-center p-4 rounded-xl border ${themeClasses.border} ${themeClasses.card}`}
+                    >
+                      <span className={`font-medium ${themeClasses.text}`}>{set.name}</span>
+                      <button
+                        onClick={() => handleToggleSubscribe(set.id, false)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition duration-300 ${themeClasses.button}`}
+                      >
+                        ➕ Додати
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </div>
-    </div>
     </div>
   );
 };

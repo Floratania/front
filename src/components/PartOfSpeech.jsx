@@ -4,38 +4,22 @@ import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
 
 const options = [
-  'noun',
-  'verb',
-  'adjective',
-  'adverb',
-  'preposition',
-  'pronoun',
-  'conjunction',
-  'interjection',
-  'adposition',
+  'noun', 'verb', 'adjective', 'adverb', 'preposition',
+  'pronoun', 'conjunction', 'interjection', 'adposition',
 ];
 
 const partMap = {
-  adj: 'adjective',
-  adv: 'adverb',
-  adp: 'adposition',
-  noun: 'noun',
-  verb: 'verb',
-  prep: 'preposition',
-  pron: 'pronoun',
-  conj: 'conjunction',
-  intj: 'interjection',
-  preposition: 'preposition',
-  adjective: 'adjective',
-  adverb: 'adverb',
-  conjunction: 'conjunction',
-  pronoun: 'pronoun',
-  interjection: 'interjection'
+  adj: 'adjective', adv: 'adverb', adp: 'adposition',
+  noun: 'noun', verb: 'verb', prep: 'preposition',
+  pron: 'pronoun', conj: 'conjunction', intj: 'interjection',
+  preposition: 'preposition', adjective: 'adjective',
+  adverb: 'adverb', conjunction: 'conjunction',
+  pronoun: 'pronoun', interjection: 'interjection'
 };
 
 const PartOfSpeech = () => {
   const { token } = useContext(AuthContext);
-  const { theme, toggleTheme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
 
   const [mode, setMode] = useState('word');
   const [item, setItem] = useState(null);
@@ -43,6 +27,7 @@ const PartOfSpeech = () => {
   const [result, setResult] = useState('');
   const [showTranslation, setShowTranslation] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const themeClasses = theme === 'dark'
     ? {
@@ -64,6 +49,7 @@ const PartOfSpeech = () => {
 
   const loadItem = async () => {
     if (!token) return;
+    setLoading(true);
     try {
       const res = await axios.get(`http://localhost:8000/api/partofspeech/practice/nlp/?type=${mode}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -75,6 +61,8 @@ const PartOfSpeech = () => {
       setAudioUrl(null);
     } catch (err) {
       console.error("❌ Помилка завантаження:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,11 +88,9 @@ const PartOfSpeech = () => {
   const checkAnswer = (choice) => {
     const correct = partMap[item.correct_part] || item.correct_part;
     setSelected(choice);
-    if (choice === correct) {
-      setResult('✅ Правильно!');
-    } else {
-      setResult(`❌ Ні. Правильна відповідь: ${correct}`);
-    }
+    setResult(choice === correct
+      ? '✅ Правильно!'
+      : `❌ Ні. Правильна відповідь: ${correct}`);
   };
 
   return (
@@ -112,19 +98,27 @@ const PartOfSpeech = () => {
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">🧠 Практика частин мови</h1>
-         
         </div>
 
         <div className="flex gap-4">
-          <button onClick={() => setMode('word')} className={`px-4 py-2 rounded ${mode === 'word' ? themeClasses.select : 'bg-gray-300'}`}>
+          <button onClick={() => setMode('word')} disabled={loading}
+            className={`px-4 py-2  rounded ${mode === 'word' ? themeClasses.select : 'bg-gray-300'}`}>
             Слово
           </button>
-          <button onClick={() => setMode('sentence')} className={`px-4 py-2 rounded text-black ${mode === 'sentence' ? themeClasses.select : 'bg-gray-300'}`}>
+          <button onClick={() => setMode('sentence')} disabled={loading}
+            className={`px-4 py-2 text-black rounded ${mode === 'sentence' ? themeClasses.select : 'bg-gray-300'}`}>
             Речення
           </button>
         </div>
 
-        {item && (
+        {loading && (
+          <div className="flex items-center space-x-3 mt-4">
+            <div className="w-5 h-5 border-4 border-dashed rounded-full animate-spin border-blue-500"></div>
+            <span className="text-sm text-gray-500 italic">Зачекайте, йде завантаження...</span>
+          </div>
+        )}
+
+        {item && !loading && (
           <div className="p-6 border rounded-xl shadow space-y-4">
             <div className="text-center">
               {mode === 'word' ? (
@@ -141,6 +135,7 @@ const PartOfSpeech = () => {
                 <button onClick={playAudio} className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">🔊 Озвучити</button>
                 <button onClick={() => setShowTranslation(true)} className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">📘 Переклад</button>
               </div>
+
               {showTranslation && <p className="mt-2 italic">Переклад: {item.translation}</p>}
             </div>
 
@@ -166,7 +161,8 @@ const PartOfSpeech = () => {
             {result && <p className="text-lg font-semibold text-center">{result}</p>}
 
             {selected && (
-              <button onClick={loadItem} className="mt-4 mx-auto block px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              <button onClick={loadItem} disabled={loading}
+                className="mt-4 mx-auto block px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                 Наступне →
               </button>
             )}
